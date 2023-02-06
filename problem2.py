@@ -204,4 +204,5 @@ df_cm = pd.DataFrame(cf_matrix / np.sum(cf_matrix, axis=1), index = [i for i in 
                      columns = [i for i in classes])
 plt.figure(figsize = (12,7))
 sns.heatmap(df_cm, annot=True)
-plt.savefig('output.png')
+# plt.savefig('output.png')
+plt.show()
