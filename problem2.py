@@ -20,7 +20,7 @@ def validate(network, valloader, criterion):
   """
   This function validates convnet parameter optimizations
   """
-  running_loss = 0.0
+  val_running_loss = 0.0
 
 #   #  creating a list to hold loss per batch
 #   loss_per_batch = []
@@ -33,22 +33,22 @@ def validate(network, valloader, criterion):
   #  preventing gradient calculations since we will not be optimizing
   with torch.no_grad():
     #  iterating through batches
-    j=0
-    for i, data in valloader:
+    k=0
+    for j, data in valloader:
       #--------------------------------------
       #  sending images and labels to device
       #--------------------------------------
-      images, labels = data[0].to(device), data[1].to(device)
+      val_inputs, val_labels = data[0].to(device), data[1].to(device)
 
       #--------------------------
       #  making classsifications
       #--------------------------
       #   classifications = network(images)
 
-      outputs = net(inputs)
-      loss = criterion(outputs, labels)
-      running_loss += loss.item()
-      j=i
+      val_outputs = net(val_inputs)
+      val_loss = criterion(val_outputs, val_labels)
+      val_running_loss += val_loss.item()
+      k=i
 
       #-----------------
     #   #  computing loss
@@ -59,7 +59,7 @@ def validate(network, valloader, criterion):
 #   print('Validation loss: %.3f' %
 #       (running_loss / j))
 
-  print(running_loss/j)
+  print(val_running_loss/j)
 
 #   return loss_per_batch
 
@@ -137,8 +137,8 @@ testset = torchvision.datasets.CIFAR10(root='./data', train=False,
 testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
                                          shuffle=False, **kwargs)
 
-print(torch.size(valloader))
-print(torch.size(trainloader))
+# print(torch.size(valloader))
+# print(torch.size(trainloader))
 
 
 classes = ('plane', 'car', 'bird', 'cat', 'deer',
