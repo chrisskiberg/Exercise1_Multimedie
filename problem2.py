@@ -1,17 +1,3 @@
-#!/usr/bin/env python3
-
-import os
-import inspect
-os.add_dll_directory('C:\\Users\\Chris\\AppData\\Local\\Programs\\Python\\Python39\\lib\\site-packages\\numpy\\__init__.py')
-
-# import PIL
-# path = os.path.abspath(PIL.__file__)
-# os.add_dll_directory("C:\\Users\\Chris\\anaconda3\\Lib\\site-packages\\PIL\\__init__.py")
-
-# import mkl
-# import _distributor_init
-
-# from PIL.Image import core as _imaging
 import torch
 import torchvision
 import torchvision.transforms as transforms
@@ -20,7 +6,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 # Vi skal bare lage en klassifier
-# TODO: Prøve å bruke Git og GitHub?
+# DONE: Prøve å bruke Git og GitHub
 # DONE: Implement accuracy in the training 
 # TODO: Implement validation loss and accuracy in the training
 # TODO: implement test performance hvertfall accuracy (kanskje confusion matrix og/eller den kurven) in training (ble anbefalt av stud.ass)
