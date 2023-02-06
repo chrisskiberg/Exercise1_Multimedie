@@ -8,7 +8,7 @@ import torch.optim as optim
 # Vi skal bare lage en klassifier
 # DONE: Prøve å bruke Git og GitHub
 # DONE: Implement accuracy in the training 
-# TODO: Implement validation loss and accuracy in the training
+# DONE: Implement validation loss and accuracy in the training
 # TODO: implement test performance hvertfall accuracy (kanskje confusion matrix og/eller den kurven) in training (ble anbefalt av stud.ass)
 # TODO: Implement PR curves (final)
 # TODO: Implement saving the results (trainings and validation accuracy and loss, test results)
