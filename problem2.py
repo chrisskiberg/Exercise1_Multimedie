@@ -34,11 +34,11 @@ def validate(network, valloader, criterion):
   with torch.no_grad():
     #  iterating through batches
     k=0
-    for j, data in valloader:
+    for j, val_data in enumerate(valloader, 0):
       #--------------------------------------
       #  sending images and labels to device
       #--------------------------------------
-      val_inputs, val_labels = data[0].to(device), data[1].to(device)
+      val_inputs, val_labels = val_data[0].to(device), val_data[1].to(device)
 
       #--------------------------
       #  making classsifications
@@ -59,7 +59,7 @@ def validate(network, valloader, criterion):
 #   print('Validation loss: %.3f' %
 #       (running_loss / j))
 
-  print(val_running_loss/j)
+  print(val_running_loss/k)
 
 #   return loss_per_batch
 
