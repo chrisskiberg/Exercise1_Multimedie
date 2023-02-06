@@ -17,60 +17,33 @@ import torch.optim as optim
 # TODO: Implement confusion matrix
 
 def validate(network, valloader, criterion):
-  """
-  This function validates convnet parameter optimizations
-  """
-  val_running_loss = 0.0
 
-#   #  creating a list to hold loss per batch
-#   loss_per_batch = []
+  val_running_loss = 0.0
 
   #  defining model state
   network.eval()
 
-
   print('validating...')
-  #  preventing gradient calculations since we will not be optimizing
-  with torch.no_grad():
+  k=0
+
+  with torch.no_grad(): #  preventing gradient calculations since we will not be optimizing
     #  iterating through batches
-    k=0
     for j, val_data in enumerate(valloader, 0):
-      #--------------------------------------
-      #  sending images and labels to device
-      #--------------------------------------
       val_inputs, val_labels = val_data[0].to(device), val_data[1].to(device)
 
       #--------------------------
-      #  making classsifications
+      #  making classsifications and computing loss
       #--------------------------
-      #   classifications = network(images)
-
       val_outputs = net(val_inputs)
       val_loss = criterion(val_outputs, val_labels)
       val_running_loss += val_loss.item()
       k=i
 
-      #-----------------
-    #   #  computing loss
-    #   #-----------------
-    #   loss = loss_function(classifications, labels)
-    #   loss_per_batch.append(loss.item())
-  print("validation loss")
-#   print('Validation loss: %.3f' %
-#       (running_loss / j))
+  print("validation loss: ", val_running_loss/k)
 
-  print(val_running_loss/k)
-
-#   return loss_per_batch
-
-
-
-  
 
 def accuracy(network, dataloader):
-  """
-  This function computes accuracy
-  """
+
   #  setting model state
   network.eval()
   
@@ -78,15 +51,11 @@ def accuracy(network, dataloader):
   total_correct = 0
   total_instances = 0
 
-
-
-#   #  creating dataloader
-#   dataloader = torch.utils.data.DataLoader(dataset, 64)
-
+  with torch.no_grad(): #  preventing gradient calculations since we will not be optimizing
   #  iterating through batches
-  with torch.no_grad():
     for data in dataloader:
         images, labels = data[0].to(device), data[1].to(device)
+
         #-------------------------------------------------------------------------
         #  making classifications and deriving indices of maximum value via argmax
         #-------------------------------------------------------------------------
@@ -97,12 +66,8 @@ def accuracy(network, dataloader):
         #--------------------------------------------------
         correct_predictions = sum(classifications==labels).item()
 
-        #------------------------
-        #  incrementing counters
-        #------------------------
         total_correct+=correct_predictions
         total_instances+=len(images)
-
 
     print(total_correct/total_instances)
 
@@ -121,12 +86,8 @@ print(trainset)
 
 train_set, val_set = torch.utils.data.random_split(trainset, [0.8, 0.2]) # kan endre på denne, hva som er fint og hjelper kommer an på kontekst ikke lett å si en enkel split (men fint å starte med 80/20)
 
-# print(train_set)
-# print(val_set)
-
 trainloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size,
                                           shuffle=True, **kwargs)
-# print(trainloader)
 
 valloader = torch.utils.data.DataLoader(val_set, batch_size=batch_size,
                                           shuffle=True, **kwargs)
@@ -136,9 +97,6 @@ testset = torchvision.datasets.CIFAR10(root='./data', train=False,
 
 testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
                                          shuffle=False, **kwargs)
-
-# print(torch.size(valloader))
-# print(torch.size(trainloader))
 
 
 classes = ('plane', 'car', 'bird', 'cat', 'deer',
@@ -186,18 +144,12 @@ for epoch in range(5):  # loop over the dataset multiple times | Kan endre på d
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
-
-        # correct_train += (outputs == labels).float().sum()
-
+      
         # print statistics
         running_loss += loss.item()
     
-    # accuracy_train = 100 *  correct_train / len(trainset)
 
-    # print("Accuracy training set = {}".format(accuracy_train))
-
-    print('[%d] loss: %.3f' %
-            (epoch + 1, running_loss / i))
+    print('[%d] loss: %.3f' % (epoch + 1, running_loss / i))
     accuracy(net, trainloader)
     validate(net, valloader, criterion)
     accuracy(net, valloader)
