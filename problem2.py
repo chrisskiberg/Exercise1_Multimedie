@@ -5,16 +5,24 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix
+
+
 # Vi skal bare lage en klassifier
 # DONE: Prøve å bruke Git og GitHub
 # DONE: Implement accuracy in the training 
 # DONE: Implement validation loss and accuracy in the training
+    # TODO: Fikse validation loss funksjon
+# TODO: Implement confusion matrix
 # TODO: implement test performance hvertfall accuracy (kanskje confusion matrix og/eller den kurven) in training (ble anbefalt av stud.ass)
 # TODO: Implement PR curves (final)
 # TODO: Implement saving the results (trainings and validation accuracy and loss, test results)
     # and the code to a file (epochs, training/validation split, neural network structure, loss function, optimizer)
     # Document the files
-# TODO: Implement confusion matrix
 
 def validate(network, valloader, criterion):
 
@@ -128,7 +136,7 @@ net.to(device)
 criterion = nn.CrossEntropyLoss() # Loss/distance funksjon
 optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9) # kan endre på denne
 
-for epoch in range(5):  # loop over the dataset multiple times | Kan endre på denne?
+for epoch in range(2  ):  # loop over the dataset multiple times | Kan endre på denne?
 
     running_loss = 0.0
     for i, data in enumerate(trainloader, 0):
@@ -169,14 +177,31 @@ print('Finished Training')
 
 correct = 0
 total = 0
+
+y_pred = []
+y_true = []
+
 with torch.no_grad():
     for data in testloader:
         images, labels = data[0].to(device), data[1].to(device)
-        # images, labels = data
+        y_true.extend(labels)
+
         outputs = net(images)
         _, predicted = torch.max(outputs.data, 1)
+        y_pred.extend(predicted)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
+    # for X_test, y_test in testloader:
+    #   print("lol")
 
 print('Accuracy of the network on the 10000 test images: %d %%'
       % (100 * correct / total))
+
+# jeg mener labels er ground truth
+
+cf_matrix = confusion_matrix(y_true, y_pred)
+df_cm = pd.DataFrame(cf_matrix / np.sum(cf_matrix, axis=1), index = [i for i in classes],
+                     columns = [i for i in classes])
+plt.figure(figsize = (12,7))
+sns.heatmap(df_cm, annot=True)
+plt.savefig('output.png')
