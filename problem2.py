@@ -4,7 +4,7 @@ import torchvision.transforms as transforms
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torchmetrics.classification import MulticlassPrecisionRecallCurve
+from torchmetrics.classification import PrecisionRecallCurve
 
 import numpy as np
 import pandas as pd
@@ -16,6 +16,9 @@ from sklearn.metrics import confusion_matrix, precision_recall_curve, auc, class
 
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.preprocessing import OneHotEncoder
+
+
+# https://github.com/bkong999/COVNet/blob/master/main.py
 
 
 # Vi skal bare lage en klassifier
@@ -197,9 +200,9 @@ for epoch in range(2):  # loop over the dataset multiple times | Kan endre på d
         running_loss += loss.item()
 
     print('[%d] loss: %.3f' % (epoch + 1, running_loss / i))
-    accuracy(net, trainloader)
-    validate(net, valloader, criterion)
-    accuracy(net, valloader)
+    # accuracy(net, trainloader)
+    # validate(net, valloader, criterion)
+    # accuracy(net, valloader)
 
     # Validation loss and accuracy?? (or too long to compute?)
     # also use accuracy?
@@ -215,23 +218,25 @@ print('Finished Training')
 correct = 0
 total = 0
 
-y_pred = []
-y_true = []
-y_prob = []
+y_pred = np.array([])
+y_true = np.array([])
+y_probs = np.zeros((0, classes), np.float)
 
 with torch.no_grad():
     for data in testloader:
         images, labels = data[0].to(device), data[1].to(device)
-        y_true.extend(labels)
+        y_true=np.append(y_true, labels)
 
         outputs = net(images)
         _, predicted = torch.max(outputs.data, 1)
-        y_pred.extend(predicted)
+        y_pred=np.append(y_pred, predicted)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
 
         probs = torch.nn.functional.softmax(outputs, dim=1)
-        y_prob.extend(probs.detach().cpu().numpy())
+        # y_prob.extend(probs.detach().cpu().numpy())
+        y_prob=np.concatenate([y_prob, probs.detach().cpu().numpy()])
+
         # y_prob = np.concatenate(y_prob)
     # for X_test, y_test in testloader:
     #   print("lol")
@@ -250,7 +255,7 @@ sns.heatmap(df_cm, annot=True)
 plt.show()
 
 # net.eval()
-# logits = net(testloader)
+# logits = net(testloader.data)
 # y_proba = F.softmax(logits, dim=1) # assuming logits has the shape [batch_size, nb_classes]
 # preds = torch.argmax(logits, dim=1)
 
@@ -259,11 +264,11 @@ recall = dict()
 fig = plt.figure()
 plt.style.use('default')
 
-# for i in range(len(classes)): # ! HMM føler ikke at det skal være en loop her! 
-#     precision[i], recall[i], _ = precision_recall_curve(
-#         y_true[:, i], y_prob[:, i]) 
-#     plt.plot(recall[i], precision[i], lw=2,
-#              label='PR Curve of class {}'.format(i))
+for i in range(len(classes)):  # ! HMM føler ikke at det skal være en loop her!
+    precision[i], recall[i], _ = precision_recall_curve(
+        testloader.targets[:, i], y_prob[:, i])
+    plt.plot(recall[i], precision[i], lw=2,
+             label='PR Curve of class {}'.format(i))
 
 # plt.xlim([0.0, 1.0])
 # plt.ylim([0.0, 1.05])
@@ -275,5 +280,9 @@ plt.style.use('default')
 # fig.tight_layout(rect=[0, 0.03, 1, 0.95])
 # plt.show()
 
-
-pr_curve = PrecisionRecallCurve(task="multiclass", num_classes=len(classes))
+# Tror egentlig burde bruke softmax her, men har ikke fått til å fungere
+# pr_curve = PrecisionRecallCurve(task="multiclass", num_classes=len(classes))
+# precision, recall, thresholds = pr_curve(y_pred, y_true)
+# print(precision)
+# print(recall)
+# print(thresholds)
