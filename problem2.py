@@ -76,8 +76,7 @@ def validate(network, valloader, criterion):
     with torch.no_grad():  # preventing gradient calculations since we will not be optimizing
         #  iterating through batches
         for j, val_data in enumerate(valloader, 0):
-            val_inputs, val_labels = val_data[0].to(
-                device), val_data[1].to(device)
+            val_inputs, val_labels = val_data[0].to(device), val_data[1].to(device)
 
             # --------------------------
             #  making classsifications and computing loss
@@ -85,7 +84,7 @@ def validate(network, valloader, criterion):
             val_outputs = net(val_inputs)
             val_loss = criterion(val_outputs, val_labels)
             val_running_loss += val_loss.item()
-            k = i
+            k = j
 
     print("validation loss: ", val_running_loss/k)
 
@@ -179,7 +178,7 @@ criterion = nn.CrossEntropyLoss()  # Loss/distance funksjon
 optimizer = optim.SGD(net.parameters(), lr=0.001,
                       momentum=0.9)  # kan endre på denne
 
-for epoch in range(2):  # loop over the dataset multiple times | Kan endre på denne?
+for epoch in range(25):  # loop over the dataset multiple times | Kan endre på denne?
 
     running_loss = 0.0
     for i, data in enumerate(trainloader, 0):
@@ -201,7 +200,7 @@ for epoch in range(2):  # loop over the dataset multiple times | Kan endre på d
 
     print('[%d] loss: %.3f' % (epoch + 1, running_loss / i))
     # accuracy(net, trainloader)
-    # validate(net, valloader, criterion)
+    validate(net, valloader, criterion)
     # accuracy(net, valloader)
 
     # Validation loss and accuracy?? (or too long to compute?)
@@ -264,7 +263,7 @@ recall = dict()
 fig = plt.figure()
 plt.style.use('default')
 
-for i in range(len(classes)):  # ! HMM føler ikke at det skal være en loop her!
+for i in range(len(classes)):  
     precision[i], recall[i], _ = precision_recall_curve(
         testloader.targets[:, i], y_prob[:, i])
     plt.plot(recall[i], precision[i], lw=2,
