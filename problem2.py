@@ -25,8 +25,9 @@ from sklearn.preprocessing import label_binarize
 # DONE: Implement accuracy in the training
 # DONE: Implement confusion matrix
 # DONE: Implement validation loss and accuracy in the training
-# ! TODO: Implement PR curves (final)
+# DONE: Implement PR curves 
 # ! TODO: Endre tilbake størrelsen på testset når ferdig å programmere funksionalitetene
+# ! TODO: Area under the curve
 # TODO: Implement saving function of the results (training and validation accuracy and loss, confusion matrix, PR curves)
 # TODO continuation: And the code to a file (epochs, training/validation split, neural network structure, loss function, optimizer)
 
@@ -139,9 +140,9 @@ valloader = torch.utils.data.DataLoader(val_set, batch_size=batch_size,
 testset = torchvision.datasets.CIFAR10(root='./data', train=False,
                                        download=True, transform=transform)
 
-testset_90p, testset_10p = torch.utils.data.random_split(trainset, [0.98, 0.02]) # ! Må endres!!!!
+testset_80p, testset_20p = torch.utils.data.random_split(trainset, [0.80, 0.20]) # ! Må endres!!!!
 
-testloader = torch.utils.data.DataLoader(testset_10p, batch_size=batch_size,
+testloader = torch.utils.data.DataLoader(testset_20p, batch_size=batch_size,
                                          shuffle=False, **kwargs)
 
 
@@ -176,7 +177,7 @@ criterion = nn.CrossEntropyLoss()  # Loss/distance funksjon
 optimizer = optim.SGD(net.parameters(), lr=0.001,
                       momentum=0.9)  # kan endre på denne
 
-for epoch in range(1):  # loop over the dataset multiple times | Kan endre på denne?
+for epoch in range(2):  # loop over the dataset multiple times | Kan endre på denne?
 
     running_loss = 0.0
     for i, data in enumerate(trainloader, 0):
@@ -245,7 +246,7 @@ with torch.no_grad():
 print('Accuracy of the network on the 10000 test images: %d %%'
       % (100 * correct / total))
 
-print(y_prob)
+# print(y_prob)
 
 
 y_prob_samples=[]
@@ -256,7 +257,7 @@ y_prob_samples=[]
 for a in range(len(y_prob)):
     for b in range(len(y_prob[0])):
         y_prob_samples.append(y_prob[a][b])
-print(y_prob_samples)
+# print(y_prob_samples)
 y_prob_samples=np.array(y_prob_samples)
 # Batch er 10, må dele opp slik at per sample og ikke per batch [[[...]]] ---> [[...]]
 # Det er til sammen 1000 samples, og dette er også i y_prob selv om ser litt vanskelig ut
@@ -271,17 +272,23 @@ y_true_binary = label_binarize(y_true, classes = [0,1,2,3,4,5,6,7,8,9]) # one ho
 # # ! må lage one hot encoding slik at får riktig one vs rest (1 vs 0), i think 
 precision = dict()
 recall = dict()
+auc_precision_recall=[]
 for i in range(len(classes)):
     precision[i], recall[i], _ = precision_recall_curve(y_true_binary[:, i],y_prob_samples[:, i])
     # test_precision[i], test_recall[i], _ = precision_recall_curve(y_test_binary[:, i], y_test_score[:, i])
 
     plt.plot(recall[i], precision[i], lw=2, label='class {}'.format(i))
 
+    auc_precision_recall.append(auc(recall[i], precision[i]))
+print(auc_precision_recall)
+
 plt.xlabel("recall")
 plt.ylabel("precision")
 plt.legend(loc="best")
 plt.title("precision vs. recall curve")
 plt.show()
+
+
 
 print("hei")
 # # ! må lage one hot encoding slik at får riktig one vs rest (1 vs 0), i think 
