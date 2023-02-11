@@ -11,6 +11,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, precision_recall_curve, auc
+from sklearn.preprocessing import label_binarize
 # auc=Area under curve
 
 # from sklearn.multiclass import OneVsRestClassifier
@@ -256,10 +257,36 @@ for a in range(len(y_prob)):
     for b in range(len(y_prob[0])):
         y_prob_samples.append(y_prob[a][b])
 print(y_prob_samples)
+y_prob_samples=np.array(y_prob_samples)
 # Batch er 10, må dele opp slik at per sample og ikke per batch [[[...]]] ---> [[...]]
 # Det er til sammen 1000 samples, og dette er også i y_prob selv om ser litt vanskelig ut
+y_true = np.array([ int(x) for x in y_true ])
+y_true_binary = label_binarize(y_true, classes = [0,1,2,3,4,5,6,7,8,9]) # one hot encode the test data true labels
+
+# ! Får riktig verdier, altså en verdi fra hver
+# print(y_true_binary[:, 0])
+# print()
+# print(y_prob_samples[:, 0])
+
+# # ! må lage one hot encoding slik at får riktig one vs rest (1 vs 0), i think 
+precision = dict()
+recall = dict()
+for i in range(len(classes)):
+    precision[i], recall[i], _ = precision_recall_curve(y_true_binary[:, i],y_prob_samples[:, i])
+    # test_precision[i], test_recall[i], _ = precision_recall_curve(y_test_binary[:, i], y_test_score[:, i])
+
+    plt.plot(recall[i], precision[i], lw=2, label='class {}'.format(i))
+
+plt.xlabel("recall")
+plt.ylabel("precision")
+plt.legend(loc="best")
+plt.title("precision vs. recall curve")
+plt.show()
 
 print("hei")
+# # ! må lage one hot encoding slik at får riktig one vs rest (1 vs 0), i think 
+
+
 # jeg mener labels er ground truth
 
 # cf_matrix = confusion_matrix(y_true, y_pred)
