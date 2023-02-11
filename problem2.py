@@ -245,6 +245,17 @@ print('Accuracy of the network on the 10000 test images: %d %%'
       % (100 * correct / total))
 
 print(y_prob)
+
+
+y_prob_samples=[]
+# Det er 10 probabilities i et sample
+# Det er 10 samples i 1 batch
+# Det er 100 samples til sammen
+
+for a in range(len(y_prob)):
+    for b in range(len(y_prob[0])):
+        y_prob_samples.append(y_prob[a][b])
+print(y_prob_samples)
 # Batch er 10, må dele opp slik at per sample og ikke per batch [[[...]]] ---> [[...]]
 # Det er til sammen 1000 samples, og dette er også i y_prob selv om ser litt vanskelig ut
 
