@@ -4,35 +4,29 @@ import torchvision.transforms as transforms
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torchmetrics.classification import PrecisionRecallCurve
+# from torchmetrics.classification import PrecisionRecallCurve
 
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix, precision_recall_curve, auc, classification_report
+from sklearn.metrics import confusion_matrix, precision_recall_curve, auc
 # auc=Area under curve
-# usikker på om vi trenger classification_report
 
-from sklearn.multiclass import OneVsRestClassifier
-from sklearn.preprocessing import OneHotEncoder
+# from sklearn.multiclass import OneVsRestClassifier
+# from sklearn.preprocessing import OneHotEncoder
 
 
 # https://github.com/bkong999/COVNet/blob/master/main.py
 
 
-# Vi skal bare lage en klassifier
-# DONE: Prøve å bruke Git og GitHub
+# DONE: Use Git and GitHub
 # DONE: Implement accuracy in the training
 # DONE: Implement confusion matrix
-# ? TODO: implement test performance hvertfall accuracy (kanskje confusion matrix og/eller den kurven) in training (ble anbefalt av stud.ass)
-# TODO: Implement precision and recall? eller er dette i precision-recall curve?
-# TODO: Implement validation loss and accuracy in the training
-# TODO: Fikse validation loss funksjon
-# TODO: Implement PR curves (final)
-# TODO: Implement saving the results (trainings and validation accuracy and loss, test results)
-# and the code to a file (epochs, training/validation split, neural network structure, loss function, optimizer)
-# Document the files
+# DONE: Implement validation loss and accuracy in the training
+# ! TODO: Implement PR curves (final)
+# TODO: Implement saving function of the results (training and validation accuracy and loss, confusion matrix, PR curves)
+# TODO continuation: And the code to a file (epochs, training/validation split, neural network structure, loss function, optimizer)
 
 # def plot_precision_recall_curve(dataloader, _classifier, caller):# hva er x, y og caller??
 
@@ -178,7 +172,7 @@ criterion = nn.CrossEntropyLoss()  # Loss/distance funksjon
 optimizer = optim.SGD(net.parameters(), lr=0.001,
                       momentum=0.9)  # kan endre på denne
 
-for epoch in range(25):  # loop over the dataset multiple times | Kan endre på denne?
+for epoch in range(1):  # loop over the dataset multiple times | Kan endre på denne?
 
     running_loss = 0.0
     for i, data in enumerate(trainloader, 0):
@@ -200,26 +194,21 @@ for epoch in range(25):  # loop over the dataset multiple times | Kan endre på 
 
     print('[%d] loss: %.3f' % (epoch + 1, running_loss / i))
     # accuracy(net, trainloader)
-    validate(net, valloader, criterion)
+    # validate(net, valloader, criterion)
     # accuracy(net, valloader)
 
-    # Validation loss and accuracy?? (or too long to compute?)
-    # also use accuracy?
-    # Trainig loss and accuracy | validation loss and accuracy
-    # good split between trainig and validation set
-
-    # test accuracy every epoch
-    # and accuracy
-    # 80/20 er ok split, men burde endre hvis ikke får grei nok performance (vanligvis kommer det veldig an på problemet, ikke lett å si, må prøve)
 
 print('Finished Training')
 
 correct = 0
 total = 0
 
+
+# ---------------- HERE TOP
+
 y_pred = np.array([])
 y_true = np.array([])
-y_probs = np.zeros((0, classes), np.float)
+y_probs = np.array([],dtype="float")
 
 with torch.no_grad():
     for data in testloader:
@@ -234,7 +223,9 @@ with torch.no_grad():
 
         probs = torch.nn.functional.softmax(outputs, dim=1)
         # y_prob.extend(probs.detach().cpu().numpy())
-        y_prob=np.concatenate([y_prob, probs.detach().cpu().numpy()])
+        y_probs=np.append(y_probs, probs.detach().cpu().numpy())
+        print(y_true)
+        # print(data)
 
         # y_prob = np.concatenate(y_prob)
     # for X_test, y_test in testloader:
@@ -245,29 +236,52 @@ print('Accuracy of the network on the 10000 test images: %d %%'
 
 # jeg mener labels er ground truth
 
-cf_matrix = confusion_matrix(y_true, y_pred)
-df_cm = pd.DataFrame(cf_matrix / np.sum(cf_matrix, axis=1), index=[i for i in classes],
-                     columns=[i for i in classes])
-plt.figure(figsize=(12, 7))
-sns.heatmap(df_cm, annot=True)
-# plt.savefig('output.png')
-plt.show()
+# cf_matrix = confusion_matrix(y_true, y_pred)
+# df_cm = pd.DataFrame(cf_matrix / np.sum(cf_matrix, axis=1), index=[i for i in classes],
+#                      columns=[i for i in classes])
+# plt.figure(figsize=(12, 7))
+# sns.heatmap(df_cm, annot=True)
+# # plt.savefig('output.png')
+# plt.show()
 
 # net.eval()
 # logits = net(testloader.data)
 # y_proba = F.softmax(logits, dim=1) # assuming logits has the shape [batch_size, nb_classes]
 # preds = torch.argmax(logits, dim=1)
 
+
 precision = dict()
 recall = dict()
 fig = plt.figure()
 plt.style.use('default')
 
+# https://stackoverflow.com/questions/56090541/how-to-plot-precision-and-recall-of-multiclass-classifier
 for i in range(len(classes)):  
     precision[i], recall[i], _ = precision_recall_curve(
-        testloader.targets[:, i], y_prob[:, i])
+        y_true[:, i], y_probs[:, i])
     plt.plot(recall[i], precision[i], lw=2,
              label='PR Curve of class {}'.format(i))
+
+# ---------------- HERE BOTTOM
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # plt.xlim([0.0, 1.0])
 # plt.ylim([0.0, 1.05])
@@ -279,7 +293,6 @@ for i in range(len(classes)):
 # fig.tight_layout(rect=[0, 0.03, 1, 0.95])
 # plt.show()
 
-# Tror egentlig burde bruke softmax her, men har ikke fått til å fungere
 # pr_curve = PrecisionRecallCurve(task="multiclass", num_classes=len(classes))
 # precision, recall, thresholds = pr_curve(y_pred, y_true)
 # print(precision)
