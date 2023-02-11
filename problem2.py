@@ -212,7 +212,9 @@ total = 0
 y_pred = np.array([])
 y_true = np.array([])
 y_probs = np.array([],dtype="float")
+y_prob=[]
 
+p=0
 with torch.no_grad():
     for data in testloader:
         images, labels = data[0].to(device), data[1].to(device)
@@ -225,10 +227,15 @@ with torch.no_grad():
         correct += (predicted == labels).sum().item()
 
         probs = torch.nn.functional.softmax(outputs, dim=1)
+        print(probs.numpy())
+        # y_prob.append(probs.numpy())
+        y_prob.append(probs.numpy().tolist())
+        # for i range
         # y_prob.extend(probs.detach().cpu().numpy())
-        y_probs=np.append(y_probs, probs.detach().cpu().numpy())
+        y_probs=np.append(y_probs, probs.numpy())
         # print(y_true)
         # print(data)
+        p+=1
 
         # y_prob = np.concatenate(y_prob)
     # for X_test, y_test in testloader:
@@ -237,6 +244,11 @@ with torch.no_grad():
 print('Accuracy of the network on the 10000 test images: %d %%'
       % (100 * correct / total))
 
+print(y_prob)
+# Batch er 10, må dele opp slik at per sample og ikke per batch [[[...]]] ---> [[...]]
+# Det er til sammen 1000 samples, og dette er også i y_prob selv om ser litt vanskelig ut
+
+print("hei")
 # jeg mener labels er ground truth
 
 # cf_matrix = confusion_matrix(y_true, y_pred)
@@ -253,54 +265,57 @@ print('Accuracy of the network on the 10000 test images: %d %%'
 # preds = torch.argmax(logits, dim=1)
 
 
-precision = dict()
-recall = dict()
-fig = plt.figure()
-plt.style.use('default')
+# precision = dict()
+# recall = dict()
+# fig = plt.figure()
+# plt.style.use('default')
 
 
 # Skille klassene (gjøre hver klasse til binær (one vs rest))
 # Alle som har samme klasse får 1 (pos label)? og de andre får 0
 # ---------
-y_true = np.array([ int(x) for x in y_true ])
-print("y_true: ", y_true)
-y_true_sort_index = np.argsort(y_true, kind="stable") # Ascending
-print("Indicies: ", y_true_sort_index)
-y_true_sorted=np.sort(y_true, kind="stable") # Ascending
-print("Sorted array: ", y_true_sorted)
+# y_true = np.array([ int(x) for x in y_true ])
+# # print("y_true: ", y_true)
+# y_true_sort_index = np.argsort(y_true, kind="stable") # Ascending
+# # print("Indicies: ", y_true_sort_index)
+# y_true_sorted=np.sort(y_true, kind="stable") # Ascending
+# # print("Sorted array: ", y_true_sorted)
 
-# ! One vs rest per klasse
+# # ! One vs rest per klasse
 
-onevsrest_arr=[[],[],[],[],[],[],[],[],[],[]] # 0,1,2,3,4,5,6,7,8 og 9, hvor indexsene er i hver liste 
-for i in range(len(y_true_sorted)):
-    onevsrest_arr[y_true_sorted[i]].append(y_true_sort_index[i])
-print(onevsrest_arr)
-print("hei")
+# onevsrest_arr=[[],[],[],[],[],[],[],[],[],[]] # 0,1,2,3,4,5,6,7,8 og 9, hvor indexsene er i hver liste 
+# for i in range(len(y_true_sorted)):
+#     onevsrest_arr[y_true_sorted[i]].append(y_true_sort_index[i])
+# print(onevsrest_arr)
+# print("hei")
+
+# # 1. Går igjennom hver klasse
+# # 2. Trenger hvilke som er riktig og hvem som er feil (0 og 1)
+#     # Må lage en ny liste med de indexene som er riktige som 1 og resten 0
+
 
 # for i in range(len(classes)):  
 #     precision[i], recall[i], _ = precision_recall_curve(
-#         y_true[:, i], y_probs[:, i])
+#         y_true[i][:], y_probs[:, i])
 #     plt.plot(recall[i], precision[i], lw=2,
 #              label='PR Curve of class {}'.format(i))
 
 
-# print(np.argwhere(y_true_sorted==0))
-# print(np.argwhere(y_true_sorted==1))
-# print(np.argwhere(y_true_sorted==2))
+# # print(np.argwhere(y_true_sorted==0))
+# # print(np.argwhere(y_true_sorted==1))
+# # print(np.argwhere(y_true_sorted==2))
 
-# ---------
+# # ---------
 
-# ifølge dokumentasjonen er det mulig å lage en multiclass, men da må jeg oppgi multiclass selv, og kan bli enda mer stress
-# https://stackoverflow.com/questions/56090541/how-to-plot-precision-and-recall-of-multiclass-classifier
-# for i in range(len(classes)):  
-#     precision[i], recall[i], _ = precision_recall_curve(
-#         y_true[:, i], y_probs[:, i])
-#     plt.plot(recall[i], precision[i], lw=2,
-#              label='PR Curve of class {}'.format(i))
+# # ifølge dokumentasjonen er det mulig å lage en multiclass, men da må jeg oppgi multiclass selv, og kan bli enda mer stress
+# # https://stackoverflow.com/questions/56090541/how-to-plot-precision-and-recall-of-multiclass-classifier
+# # for i in range(len(classes)):  
+# #     precision[i], recall[i], _ = precision_recall_curve(
+# #         y_true[:, i], y_probs[:, i])
+# #     plt.plot(recall[i], precision[i], lw=2,
+# #              label='PR Curve of class {}'.format(i))
 
-# # ---------------- HERE BOTTOM
-
-
+# # # ---------------- HERE BOTTOM
 
 
 
@@ -319,18 +334,20 @@ print("hei")
 
 
 
-# # plt.xlim([0.0, 1.0])
-# # plt.ylim([0.0, 1.05])
-# # plt.xlabel("recall")
-# # plt.ylabel("precision")
-# # plt.legend(loc="lower right", prop={'size': 10})
-# # plt.title('Precision-Recall to multi-class: ')
-# # # plt.suptitle(algor_name, fontsize=16)
-# # fig.tight_layout(rect=[0, 0.03, 1, 0.95])
-# # plt.show()
 
-# # pr_curve = PrecisionRecallCurve(task="multiclass", num_classes=len(classes))
-# # precision, recall, thresholds = pr_curve(y_pred, y_true)
-# # print(precision)
-# # print(recall)
-# # print(thresholds)
+
+# # # plt.xlim([0.0, 1.0])
+# # # plt.ylim([0.0, 1.05])
+# # # plt.xlabel("recall")
+# # # plt.ylabel("precision")
+# # # plt.legend(loc="lower right", prop={'size': 10})
+# # # plt.title('Precision-Recall to multi-class: ')
+# # # # plt.suptitle(algor_name, fontsize=16)
+# # # fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+# # # plt.show()
+
+# # # pr_curve = PrecisionRecallCurve(task="multiclass", num_classes=len(classes))
+# # # precision, recall, thresholds = pr_curve(y_pred, y_true)
+# # # print(precision)
+# # # print(recall)
+# # # print(thresholds)
