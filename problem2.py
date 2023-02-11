@@ -88,6 +88,30 @@ def accuracy(network, dataloader):
 
         print(total_correct/total_instances)
 
+def precision_recall(y_pred, y_true): # ! jeg tror jeg må gjøre dette for hver klasse, men bør kanskje spørre om det er mulig med totalt?
+# ! er dette allerede implementert lenger ned? aner ikke hvordan jeg skal få total ut fra den
+
+# Trenger å lage arrays og for loops
+    total_truePositives=0
+    total_trueNegatives=0
+    total_falsePositives=0
+    total_falseNegatives=0
+
+    for i in range(len(y_pred)): # Se figur for å dobbeltsjekke
+        if y_pred[i]==y_true[i] and y_true[i]=="class":
+            total_truePositives+=1
+        elif y_pred[i]==y_true[i] and y_true[i]!="class":
+            total_trueNegatives+=1
+        elif y_pred[i]!=y_true[i] and y_pred[i]=="class":
+            total_falsePositives+=1
+        elif y_pred[i]!=y_true[i] and y_pred[i]!="class":
+            total_falseNegatives+=1
+    
+    total_precision=total_truePositives/(total_truePositives+total_falsePositives)
+    total_recall=total_truePositives/(total_truePositives+total_falseNegatives)
+    
+
+
 
 transform = transforms.Compose([transforms.ToTensor(),
                                 transforms.Normalize((0.5, 0.5, 0.5),
@@ -150,7 +174,7 @@ criterion = nn.CrossEntropyLoss()  # Loss/distance funksjon
 optimizer = optim.SGD(net.parameters(), lr=0.001,
                       momentum=0.9)  # kan endre på denne
 
-for epoch in range(5):  # loop over the dataset multiple times | Kan endre på denne?
+for epoch in range(2):  # loop over the dataset multiple times | Kan endre på denne?
 
     running_loss = 0.0
     for i, data in enumerate(trainloader, 0):
