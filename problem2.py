@@ -25,6 +25,7 @@ from sklearn.metrics import confusion_matrix, precision_recall_curve, auc
 # DONE: Implement confusion matrix
 # DONE: Implement validation loss and accuracy in the training
 # ! TODO: Implement PR curves (final)
+# ! TODO: Endre tilbake størrelsen på testset når ferdig å programmere funksionalitetene
 # TODO: Implement saving function of the results (training and validation accuracy and loss, confusion matrix, PR curves)
 # TODO continuation: And the code to a file (epochs, training/validation split, neural network structure, loss function, optimizer)
 
@@ -137,7 +138,9 @@ valloader = torch.utils.data.DataLoader(val_set, batch_size=batch_size,
 testset = torchvision.datasets.CIFAR10(root='./data', train=False,
                                        download=True, transform=transform)
 
-testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
+testset_90p, testset_10p = torch.utils.data.random_split(trainset, [0.98, 0.02]) # ! Må endres!!!!
+
+testloader = torch.utils.data.DataLoader(testset_10p, batch_size=batch_size,
                                          shuffle=False, **kwargs)
 
 
@@ -259,13 +262,16 @@ plt.style.use('default')
 # Skille klassene (gjøre hver klasse til binær (one vs rest))
 # Alle som har samme klasse får 1 (pos label)? og de andre får 0
 # ---------
-print(y_true)
+y_true = np.array([ int(x) for x in y_true ])
+print("y_true: ", y_true)
 y_true_sort_index = np.argsort(y_true, kind="stable") # Ascending
 print("Indicies: ", y_true_sort_index)
 y_true_sorted=np.sort(y_true, kind="stable") # Ascending
-print("Sorted array: ", y_true_sorted, kind="stable")
+print("Sorted array: ", y_true_sorted)
 
-
+# print(np.argwhere(y_true_sorted==0))
+print(np.argwhere(y_true_sorted==1))
+# print(np.argwhere(y_true_sorted==2))
 
 # ---------
 
