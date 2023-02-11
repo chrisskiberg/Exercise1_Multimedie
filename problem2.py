@@ -25,9 +25,9 @@ from sklearn.preprocessing import label_binarize
 # DONE: Implement accuracy in the training
 # DONE: Implement confusion matrix
 # DONE: Implement validation loss and accuracy in the training
-# DONE: Implement PR curves 
+# DONE: Implement PR curves
 # ! TODO: Endre tilbake størrelsen på testset når ferdig å programmere funksionalitetene
-# ! TODO: Area under the curve
+# ? DONE: Implement Area under the PR-curve
 # TODO: Implement saving function of the results (training and validation accuracy and loss, confusion matrix, PR curves)
 # TODO continuation: And the code to a file (epochs, training/validation split, neural network structure, loss function, optimizer)
 
@@ -73,7 +73,8 @@ def validate(network, valloader, criterion):
     with torch.no_grad():  # preventing gradient calculations since we will not be optimizing
         #  iterating through batches
         for j, val_data in enumerate(valloader, 0):
-            val_inputs, val_labels = val_data[0].to(device), val_data[1].to(device)
+            val_inputs, val_labels = val_data[0].to(
+                device), val_data[1].to(device)
 
             # --------------------------
             #  making classsifications and computing loss
@@ -140,7 +141,8 @@ valloader = torch.utils.data.DataLoader(val_set, batch_size=batch_size,
 testset = torchvision.datasets.CIFAR10(root='./data', train=False,
                                        download=True, transform=transform)
 
-testset_80p, testset_20p = torch.utils.data.random_split(trainset, [0.80, 0.20]) # ! Må endres!!!!
+testset_80p, testset_20p = torch.utils.data.random_split(
+    trainset, [0.80, 0.20])  # ! Må endres!!!!
 
 testloader = torch.utils.data.DataLoader(testset_20p, batch_size=batch_size,
                                          shuffle=False, **kwargs)
@@ -213,31 +215,31 @@ total = 0
 
 y_pred = np.array([])
 y_true = np.array([])
-y_probs = np.array([],dtype="float")
-y_prob=[]
+y_probs = np.array([], dtype="float")
+y_prob = []
 
-p=0
+p = 0
 with torch.no_grad():
     for data in testloader:
         images, labels = data[0].to(device), data[1].to(device)
-        y_true=np.append(y_true, labels)
+        y_true = np.append(y_true, labels)
 
         outputs = net(images)
         _, predicted = torch.max(outputs.data, 1)
-        y_pred=np.append(y_pred, predicted)
+        y_pred = np.append(y_pred, predicted)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
 
         probs = torch.nn.functional.softmax(outputs, dim=1)
-        print(probs.numpy())
+        # print(probs.numpy())
         # y_prob.append(probs.numpy())
         y_prob.append(probs.numpy().tolist())
         # for i range
         # y_prob.extend(probs.detach().cpu().numpy())
-        y_probs=np.append(y_probs, probs.numpy())
+        y_probs = np.append(y_probs, probs.numpy())
         # print(y_true)
         # print(data)
-        p+=1
+        p += 1
 
         # y_prob = np.concatenate(y_prob)
     # for X_test, y_test in testloader:
@@ -249,7 +251,7 @@ print('Accuracy of the network on the 10000 test images: %d %%'
 # print(y_prob)
 
 
-y_prob_samples=[]
+y_prob_samples = []
 # Det er 10 probabilities i et sample
 # Det er 10 samples i 1 batch
 # Det er 100 samples til sammen
@@ -258,23 +260,25 @@ for a in range(len(y_prob)):
     for b in range(len(y_prob[0])):
         y_prob_samples.append(y_prob[a][b])
 # print(y_prob_samples)
-y_prob_samples=np.array(y_prob_samples)
+y_prob_samples = np.array(y_prob_samples)
 # Batch er 10, må dele opp slik at per sample og ikke per batch [[[...]]] ---> [[...]]
 # Det er til sammen 1000 samples, og dette er også i y_prob selv om ser litt vanskelig ut
-y_true = np.array([ int(x) for x in y_true ])
-y_true_binary = label_binarize(y_true, classes = [0,1,2,3,4,5,6,7,8,9]) # one hot encode the test data true labels
+y_true = np.array([int(x) for x in y_true])
+# one hot encode the test data true labels
+y_true_binary = label_binarize(y_true, classes=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 
 # ! Får riktig verdier, altså en verdi fra hver
 # print(y_true_binary[:, 0])
 # print()
 # print(y_prob_samples[:, 0])
 
-# # ! må lage one hot encoding slik at får riktig one vs rest (1 vs 0), i think 
+# # ! må lage one hot encoding slik at får riktig one vs rest (1 vs 0), i think
 precision = dict()
 recall = dict()
-auc_precision_recall=[]
+auc_precision_recall = []
 for i in range(len(classes)):
-    precision[i], recall[i], _ = precision_recall_curve(y_true_binary[:, i],y_prob_samples[:, i])
+    precision[i], recall[i], _ = precision_recall_curve(
+        y_true_binary[:, i], y_prob_samples[:, i])
     # test_precision[i], test_recall[i], _ = precision_recall_curve(y_test_binary[:, i], y_test_score[:, i])
 
     plt.plot(recall[i], precision[i], lw=2, label='class {}'.format(i))
@@ -289,9 +293,8 @@ plt.title("precision vs. recall curve")
 plt.show()
 
 
-
 print("hei")
-# # ! må lage one hot encoding slik at får riktig one vs rest (1 vs 0), i think 
+# # ! må lage one hot encoding slik at får riktig one vs rest (1 vs 0), i think
 
 
 # jeg mener labels er ground truth
@@ -328,7 +331,7 @@ print("hei")
 
 # # ! One vs rest per klasse
 
-# onevsrest_arr=[[],[],[],[],[],[],[],[],[],[]] # 0,1,2,3,4,5,6,7,8 og 9, hvor indexsene er i hver liste 
+# onevsrest_arr=[[],[],[],[],[],[],[],[],[],[]] # 0,1,2,3,4,5,6,7,8 og 9, hvor indexsene er i hver liste
 # for i in range(len(y_true_sorted)):
 #     onevsrest_arr[y_true_sorted[i]].append(y_true_sort_index[i])
 # print(onevsrest_arr)
@@ -339,7 +342,7 @@ print("hei")
 #     # Må lage en ny liste med de indexene som er riktige som 1 og resten 0
 
 
-# for i in range(len(classes)):  
+# for i in range(len(classes)):
 #     precision[i], recall[i], _ = precision_recall_curve(
 #         y_true[i][:], y_probs[:, i])
 #     plt.plot(recall[i], precision[i], lw=2,
@@ -354,31 +357,13 @@ print("hei")
 
 # # ifølge dokumentasjonen er det mulig å lage en multiclass, men da må jeg oppgi multiclass selv, og kan bli enda mer stress
 # # https://stackoverflow.com/questions/56090541/how-to-plot-precision-and-recall-of-multiclass-classifier
-# # for i in range(len(classes)):  
+# # for i in range(len(classes)):
 # #     precision[i], recall[i], _ = precision_recall_curve(
 # #         y_true[:, i], y_probs[:, i])
 # #     plt.plot(recall[i], precision[i], lw=2,
 # #              label='PR Curve of class {}'.format(i))
 
 # # # ---------------- HERE BOTTOM
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 # # # plt.xlim([0.0, 1.0])
