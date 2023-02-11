@@ -269,8 +269,23 @@ print("Indicies: ", y_true_sort_index)
 y_true_sorted=np.sort(y_true, kind="stable") # Ascending
 print("Sorted array: ", y_true_sorted)
 
+# ! One vs rest per klasse
+
+onevsrest_arr=[[],[],[],[],[],[],[],[],[],[]] # 0,1,2,3,4,5,6,7,8 og 9, hvor indexsene er i hver liste 
+for i in range(len(y_true_sorted)):
+    onevsrest_arr[y_true_sorted[i]].append(y_true_sort_index[i])
+print(onevsrest_arr)
+print("hei")
+
+# for i in range(len(classes)):  
+#     precision[i], recall[i], _ = precision_recall_curve(
+#         y_true[:, i], y_probs[:, i])
+#     plt.plot(recall[i], precision[i], lw=2,
+#              label='PR Curve of class {}'.format(i))
+
+
 # print(np.argwhere(y_true_sorted==0))
-print(np.argwhere(y_true_sorted==1))
+# print(np.argwhere(y_true_sorted==1))
 # print(np.argwhere(y_true_sorted==2))
 
 # ---------
