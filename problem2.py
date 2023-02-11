@@ -27,7 +27,11 @@ from sklearn.preprocessing import label_binarize
 # DONE: Implement validation loss and accuracy in the training
 # DONE: Implement PR curves
 # ! TODO: Endre tilbake størrelsen på testset når ferdig å programmere funksionalitetene
-# ? DONE: Implement Area under the PR-curve
+# ? DONE: Implement Area under the PR curve
+    # ? Resultatene så litt rare ut, men ingenting er endret utenom test settet - Ja, ser ut som om det bare kommer an på test settet
+# TODO: Implement precision and recall
+
+
 # TODO: Implement saving function of the results (training and validation accuracy and loss, confusion matrix, PR curves)
 # TODO continuation: And the code to a file (epochs, training/validation split, neural network structure, loss function, optimizer)
 
@@ -142,7 +146,7 @@ testset = torchvision.datasets.CIFAR10(root='./data', train=False,
                                        download=True, transform=transform)
 
 testset_80p, testset_20p = torch.utils.data.random_split(
-    trainset, [0.80, 0.20])  # ! Må endres!!!!
+    trainset, [0.98, 0.02])  # ! Må endres!!!!
 
 testloader = torch.utils.data.DataLoader(testset_20p, batch_size=batch_size,
                                          shuffle=False, **kwargs)
@@ -179,7 +183,7 @@ criterion = nn.CrossEntropyLoss()  # Loss/distance funksjon
 optimizer = optim.SGD(net.parameters(), lr=0.001,
                       momentum=0.9)  # kan endre på denne
 
-for epoch in range(2):  # loop over the dataset multiple times | Kan endre på denne?
+for epoch in range(5):  # loop over the dataset multiple times | Kan endre på denne?
 
     running_loss = 0.0
     for i, data in enumerate(trainloader, 0):
@@ -236,7 +240,7 @@ with torch.no_grad():
         y_prob.append(probs.numpy().tolist())
         # for i range
         # y_prob.extend(probs.detach().cpu().numpy())
-        y_probs = np.append(y_probs, probs.numpy())
+        # y_probs = np.append(y_probs, probs.numpy())
         # print(y_true)
         # print(data)
         p += 1
