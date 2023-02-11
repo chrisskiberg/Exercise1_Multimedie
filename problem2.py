@@ -224,7 +224,7 @@ with torch.no_grad():
         probs = torch.nn.functional.softmax(outputs, dim=1)
         # y_prob.extend(probs.detach().cpu().numpy())
         y_probs=np.append(y_probs, probs.detach().cpu().numpy())
-        print(y_true)
+        # print(y_true)
         # print(data)
 
         # y_prob = np.concatenate(y_prob)
@@ -255,16 +255,29 @@ recall = dict()
 fig = plt.figure()
 plt.style.use('default')
 
+
+# Skille klassene (gjøre hver klasse til binær (one vs rest))
+# Alle som har samme klasse får 1 (pos label)? og de andre får 0
+# ---------
+print(y_true)
+y_true_sort_index = np.argsort(y_true, kind="stable") # Ascending
+print("Indicies: ", y_true_sort_index)
+y_true_sorted=np.sort(y_true, kind="stable") # Ascending
+print("Sorted array: ", y_true_sorted, kind="stable")
+
+
+
+# ---------
+
+# ifølge dokumentasjonen er det mulig å lage en multiclass, men da må jeg oppgi multiclass selv, og kan bli enda mer stress
 # https://stackoverflow.com/questions/56090541/how-to-plot-precision-and-recall-of-multiclass-classifier
-for i in range(len(classes)):  
-    precision[i], recall[i], _ = precision_recall_curve(
-        y_true[:, i], y_probs[:, i])
-    plt.plot(recall[i], precision[i], lw=2,
-             label='PR Curve of class {}'.format(i))
+# for i in range(len(classes)):  
+#     precision[i], recall[i], _ = precision_recall_curve(
+#         y_true[:, i], y_probs[:, i])
+#     plt.plot(recall[i], precision[i], lw=2,
+#              label='PR Curve of class {}'.format(i))
 
-# ---------------- HERE BOTTOM
-
-
+# # ---------------- HERE BOTTOM
 
 
 
@@ -283,18 +296,20 @@ for i in range(len(classes)):
 
 
 
-# plt.xlim([0.0, 1.0])
-# plt.ylim([0.0, 1.05])
-# plt.xlabel("recall")
-# plt.ylabel("precision")
-# plt.legend(loc="lower right", prop={'size': 10})
-# plt.title('Precision-Recall to multi-class: ')
-# # plt.suptitle(algor_name, fontsize=16)
-# fig.tight_layout(rect=[0, 0.03, 1, 0.95])
-# plt.show()
 
-# pr_curve = PrecisionRecallCurve(task="multiclass", num_classes=len(classes))
-# precision, recall, thresholds = pr_curve(y_pred, y_true)
-# print(precision)
-# print(recall)
-# print(thresholds)
+
+# # plt.xlim([0.0, 1.0])
+# # plt.ylim([0.0, 1.05])
+# # plt.xlabel("recall")
+# # plt.ylabel("precision")
+# # plt.legend(loc="lower right", prop={'size': 10})
+# # plt.title('Precision-Recall to multi-class: ')
+# # # plt.suptitle(algor_name, fontsize=16)
+# # fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+# # plt.show()
+
+# # pr_curve = PrecisionRecallCurve(task="multiclass", num_classes=len(classes))
+# # precision, recall, thresholds = pr_curve(y_pred, y_true)
+# # print(precision)
+# # print(recall)
+# # print(thresholds)
