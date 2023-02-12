@@ -169,10 +169,12 @@ valloader = torch.utils.data.DataLoader(val_set, batch_size=batch_size,
 testset = torchvision.datasets.CIFAR10(root='./data', train=False,
                                        download=True, transform=transform)
 
-testset_80p, testset_20p = torch.utils.data.random_split(
-    trainset, [0.98, 0.02])  # ! Må endres!!!!
+# testset_80p, testset_20p = torch.utils.data.random_split(
+#     trainset, [0.98, 0.02])  # ! Må endres!!!!
+# testset_80p, testset_20p = torch.utils.data.random_split(
+#     trainset, [0.98, 0.02])  # ! Må endres!!!!
 
-testloader = torch.utils.data.DataLoader(testset_20p, batch_size=batch_size,
+testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
                                          shuffle=False, **kwargs)
 
 
@@ -186,9 +188,10 @@ class Net(nn.Module):  # Kan endre de her
         self.conv1 = nn.Conv2d(3, 6, 5)
         self.pool = nn.MaxPool2d(2, 2)
         self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(16 * 5 * 5, 120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 10)
+        self.fc1 = nn.Linear(16 * 5 * 5, 200)
+        self.fc2 = nn.Linear(200, 100)
+        self.fc3 = nn.Linear(100, 50)
+        self.fc4 = nn.Linear(50, 10)
 
     def forward(self, x):
         x = self.pool(F.relu(self.conv1(x)))
@@ -196,7 +199,8 @@ class Net(nn.Module):  # Kan endre de her
         x = x.view(-1, 16 * 5 * 5)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
-        x = self.fc3(x)
+        x = F.relu(self.fc3(x))
+        x = self.fc4(x)
         return x
 
 
@@ -208,7 +212,7 @@ optimizer = optim.SGD(net.parameters(), lr=0.001,
                       momentum=0.9)  # kan endre på denne
 
 print("Starting training")
-for epoch in range(2):  # loop over the dataset multiple times | Kan endre på denne?
+for epoch in range(5):  # loop over the dataset multiple times | Kan endre på denne?
     print("starting epoch " + str(epoch+1) + " ...")
     running_loss = 0.0
     for i, data in enumerate(trainloader, 0):
@@ -260,7 +264,7 @@ with torch.no_grad():
         probs = torch.nn.functional.softmax(outputs, dim=1)
         y_prob.append(probs.numpy().tolist())
 
-print('Accuracy of the network: %d %%' % (100 * correct / total))
+print('Test accuracy of the network: %d %%' % (100 * correct / total))
 
 
 cf_matrix = confusion_matrix(y_true, y_pred)
@@ -309,7 +313,7 @@ for i in range(len(classes)):
     average_precision[i] = average_precision_score(
         y_true_binary[:, i], y_prob_samples[:, i])
     # test_precision[i], test_recall[i], _ = precision_recall_curve(y_test_binary[:, i], y_test_score[:, i])
-    plt.plot(recall[i], precision[i], lw=2, label='class {}'.format(i))
+    plt.plot(recall[i], precision[i], lw=2, label='class {}'.format(classes[i]))
 
     auc_precision_recall.append(auc(recall[i], precision[i]))
 
@@ -352,8 +356,6 @@ print("display_auc: ", display_auc)
 # print(display.line_.get_xdata())
 # print(display.line_.get_xydata())
 # print(display.line_.get_ydata())
-
-
 # print(display._y)
 # print(display._xy)
 
