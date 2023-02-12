@@ -96,15 +96,16 @@ def precision_recall(y_pred, y_true):
     # Trenger å lage arrays og for loops
 
 
-    precision_recall_arr=[[],[],[],[],[],[],[],[],[],[]] # 0,1,2,3,4,5,6,7,8 og 9, hvor indexsene er i hver liste 
+    precision_arr=[[],[],[],[],[],[],[],[],[],[]] # 0,1,2,3,4,5,6,7,8 og 9, hvor indexsene er i hver liste 
+    recall_arr=[[],[],[],[],[],[],[],[],[],[]] # 0,1,2,3,4,5,6,7,8 og 9, hvor indexsene er i hver liste 
 
     # for x in range(len(precision_recall_arr)):
-    for x in range(1):
+    for x in range(len(precision_arr)):
         
         # må lage liste hvor en klasse er 1 og de andre er 0
         y_pred_class=[]
         y_true_class=[]
-        for y in range(len(y_pred)):
+        for y in range(len(y_true)):
             if y_pred[y]==x:
                 y_pred_class.append(1)
             else:
@@ -117,26 +118,29 @@ def precision_recall(y_pred, y_true):
 
         print("hei")
 
-        # truePositives = 0
-        # trueNegatives = 0
-        # falsePositives = 0
-        # falseNegatives = 0
+        truePositives = 0
+        trueNegatives = 0
+        falsePositives = 0
+        falseNegatives = 0
 
-        # for i in range(len(y_pred)):  # Se figur for å dobbeltsjekke
-        #     if y_pred[i] == y_true[i] and y_true[i] == "class":
-        #         total_truePositives += 1
-        #     elif y_pred[i] == y_true[i] and y_true[i] != "class":
-        #         total_trueNegatives += 1
-        #     elif y_pred[i] != y_true[i] and y_pred[i] == "class":
-        #         total_falsePositives += 1
-        #     elif y_pred[i] != y_true[i] and y_pred[i] != "class":
-        #         total_falseNegatives += 1
+        for m in range(len(y_true)):  # Se figur for å dobbeltsjekke
+            if y_pred_class[m] == y_true_class[m] and y_pred_class[m] == 1:
+                truePositives += 1
+            elif y_pred_class[m] == y_true_class[m] and y_pred_class[m] == 0:
+                trueNegatives += 1
+            elif y_pred_class[m] != y_true_class[m] and y_pred_class[m] == 1:
+                falsePositives += 1
+            elif y_pred_class[m] != y_true_class[m] and y_pred_class[m] == 0:
+                falseNegatives += 1
 
-        # total_precision = total_truePositives / \
-        #     (total_truePositives+total_falsePositives)
-        # total_recall = total_truePositives / \
-        #     (total_truePositives+total_falseNegatives)
+        precision_class = truePositives / (truePositives+falsePositives)
+        recall_class = truePositives / (truePositives+falseNegatives)
 
+        precision_arr[x]=precision_class
+        recall_arr[x]=recall_class
+
+    print("hei")
+    return precision_arr, recall_arr
 
 transform = transforms.Compose([transforms.ToTensor(),
                                 transforms.Normalize((0.5, 0.5, 0.5),
@@ -277,7 +281,7 @@ y_true = np.array([int(x) for x in y_true])
 # one hot encode the test data true labels
 y_true_binary = label_binarize(y_true, classes=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 
-precision_recall(y_pred, y_true)
+precision_arr, recall_arr= precision_recall(y_pred, y_true)
 
 for a in range(len(y_prob)):
     for b in range(len(y_prob[0])):
