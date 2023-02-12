@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix, precision_recall_curve, auc
+from sklearn.metrics import confusion_matrix, precision_recall_curve, auc, average_precision_score, PrecisionRecallDisplay
 from sklearn.preprocessing import label_binarize
 # auc=Area under curve
 
@@ -267,11 +267,11 @@ y_true_binary = label_binarize(y_true, classes=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 precision = dict()
 recall = dict()
 auc_precision_recall = []
+average_precision = dict()
 for i in range(len(classes)):
-    precision[i], recall[i], _ = precision_recall_curve(
-        y_true_binary[:, i], y_prob_samples[:, i])
+    precision[i], recall[i], _ = precision_recall_curve(y_true_binary[:, i], y_prob_samples[:, i])
+    average_precision[i] = average_precision_score(y_true_binary[:, i], y_prob_samples[:, i])
     # test_precision[i], test_recall[i], _ = precision_recall_curve(y_test_binary[:, i], y_test_score[:, i])
-
     plt.plot(recall[i], precision[i], lw=2, label='class {}'.format(i))
 
     auc_precision_recall.append(auc(recall[i], precision[i]))
@@ -281,6 +281,21 @@ plt.xlabel("recall")
 plt.ylabel("precision")
 plt.legend(loc="best")
 plt.title("precision vs. recall curve")
+plt.show()
+
+# A "micro-average": quantifying score on all classes jointly
+precision["micro"], recall["micro"], _ = precision_recall_curve(
+    y_true_binary.ravel(), y_prob_samples.ravel()
+)
+average_precision["micro"] = average_precision_score(y_true_binary, y_prob_samples, average="micro")
+
+display = PrecisionRecallDisplay(
+    recall=recall["micro"],
+    precision=precision["micro"],
+    average_precision=average_precision["micro"],
+)
+display.plot()
+_ = display.ax_.set_title("Micro-averaged over all classes")
 plt.show()
 
 
