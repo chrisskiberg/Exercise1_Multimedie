@@ -24,13 +24,19 @@ from sklearn.preprocessing import label_binarize
 # DONE: Implement PR curves
 # ! TODO: Endre tilbake størrelsen på testset når ferdig å programmere funksionalitetene
 # DONE: Micro average over all classes and plot the average PR curve
-# ? DONE: Implement Area under the PR curve
-# ? Resultatene så litt rare ut, men ingenting er endret utenom test settet - Ja, ser ut som om det bare kommer an på test settet
-# TODO: Implement precision and recall (training-, test- and validation set?)
+# DONE: Implement Area under the PR curve
+# DONE: Implement precision and recall (training-, test- and validation set?)
 
-# TODO: Implement saving function of the results (training and validation accuracy and loss, confusion matrix, PR curves)
-# TODO continuation: And the code to a file (epochs, training/validation split, neural network structure, loss function, optimizer)
+# ? TODO: Implement saving function of the results (training and validation accuracy and loss, confusion matrix, PR curves)
+    # ! Will have to do this manually
+# ? TODO continuation: And the code to a file (epochs, training/validation split, neural network structure, loss function, optimizer)
+    # ! Will have to do this manually
 
+
+# TODO: Forstå alle funksjonene jeg skal bruke for forbedre modellen
+# TODO: Clean up funksjoner, få god oversikt over tallene og plotene
+# TODO: Trene modellen
+    # TODO: Klare å endre på modellen
 
 def validate(network, valloader, criterion):
 
