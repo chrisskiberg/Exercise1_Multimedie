@@ -28,15 +28,16 @@ from sklearn.preprocessing import label_binarize
 # DONE: Implement precision and recall (training-, test- and validation set?)
 
 # ? TODO: Implement saving function of the results (training and validation accuracy and loss, confusion matrix, PR curves)
-    # ! Will have to do this manually
+# ! Will have to do this manually
 # ? TODO continuation: And the code to a file (epochs, training/validation split, neural network structure, loss function, optimizer)
-    # ! Will have to do this manually
+# ! Will have to do this manually
 
 
 # TODO: Forstå alle funksjonene jeg skal bruke for forbedre modellen
-# TODO: Clean up funksjoner, få god oversikt over tallene og plotene
+# DONE: Clean up funksjoner, få god oversikt over tallene og plotene
 # TODO: Trene modellen
-    # TODO: Klare å endre på modellen
+# TODO: Klare å endre på modellen
+# TODO: Trene modellene og lagre resultatene
 
 def validate(network, valloader, criterion):
 
@@ -65,7 +66,7 @@ def validate(network, valloader, criterion):
     print("validation loss: ", val_running_loss/k)
 
 
-def accuracy(network, dataloader):
+def accuracy(network, dataloader, train_val_test=0):
 
     #  setting model state
     network.eval()
@@ -92,37 +93,34 @@ def accuracy(network, dataloader):
             total_correct += correct_predictions
             total_instances += len(images)
 
-        print(total_correct/total_instances)
+        if train_val_test == 1:
+            print("training accuracy: ", total_correct/total_instances)
+        elif train_val_test == 2:
+            print("validation accuracy: ", total_correct/total_instances)
+        elif train_val_test == 3:
+            print("test accuracy: ", total_correct/total_instances)
+        else:
+            print("[?] accuracy: ", total_correct/total_instances)
 
 
-# ! jeg tror jeg må gjøre dette for hver klasse, men bør kanskje spørre om det er mulig med totalt?
 def precision_recall(y_pred, y_true):
-    # ! er dette allerede implementert lenger ned? aner ikke hvordan jeg skal få total ut fra den
+    precision_arr = [[], [], [], [], [], [], [], [], [], []]
+    recall_arr = [[], [], [], [], [], [], [], [], [], []]
 
-    # Trenger å lage arrays og for loops
-
-
-    precision_arr=[[],[],[],[],[],[],[],[],[],[]] # 0,1,2,3,4,5,6,7,8 og 9, hvor indexsene er i hver liste 
-    recall_arr=[[],[],[],[],[],[],[],[],[],[]] # 0,1,2,3,4,5,6,7,8 og 9, hvor indexsene er i hver liste 
-
-    # for x in range(len(precision_recall_arr)):
     for x in range(len(precision_arr)):
-        
-        # må lage liste hvor en klasse er 1 og de andre er 0
-        y_pred_class=[]
-        y_true_class=[]
+        # En klasse er 1 og de andre er 0
+        y_pred_class = []
+        y_true_class = []
         for y in range(len(y_true)):
-            if y_pred[y]==x:
+            if y_pred[y] == x:
                 y_pred_class.append(1)
             else:
                 y_pred_class.append(0)
 
-            if y_true[y]==x:
+            if y_true[y] == x:
                 y_true_class.append(1)
             else:
                 y_true_class.append(0)
-
-        print("hei")
 
         truePositives = 0
         trueNegatives = 0
@@ -142,11 +140,11 @@ def precision_recall(y_pred, y_true):
         precision_class = truePositives / (truePositives+falsePositives)
         recall_class = truePositives / (truePositives+falseNegatives)
 
-        precision_arr[x]=precision_class
-        recall_arr[x]=recall_class
+        precision_arr[x] = precision_class
+        recall_arr[x] = recall_class
 
-    print("hei")
     return precision_arr, recall_arr
+
 
 transform = transforms.Compose([transforms.ToTensor(),
                                 transforms.Normalize((0.5, 0.5, 0.5),
@@ -209,8 +207,9 @@ criterion = nn.CrossEntropyLoss()  # Loss/distance funksjon
 optimizer = optim.SGD(net.parameters(), lr=0.001,
                       momentum=0.9)  # kan endre på denne
 
+print("Starting training")
 for epoch in range(2):  # loop over the dataset multiple times | Kan endre på denne?
-
+    print("starting epoch " + str(epoch+1) + " ...")
     running_loss = 0.0
     for i, data in enumerate(trainloader, 0):
         # get the inputs; data is a list of [inputs, labels]
@@ -229,19 +228,18 @@ for epoch in range(2):  # loop over the dataset multiple times | Kan endre på d
         # print statistics
         running_loss += loss.item()
 
-    print('[%d] loss: %.3f' % (epoch + 1, running_loss / i))
-    # accuracy(net, trainloader)
-    # validate(net, valloader, criterion)
-    # accuracy(net, valloader)
+    print('[%d] training running loss: %.3f' % (epoch + 1, running_loss / i))
+    accuracy(net, trainloader, 1)
+    validate(net, valloader, criterion)
+    accuracy(net, valloader, 2)
 
-
+print('-----------------')
 print('Finished Training')
+print('-----------------')
 
 correct = 0
 total = 0
 
-
-# ---------------- HERE TOP
 
 y_pred = np.array([])
 y_true = np.array([])
@@ -262,20 +260,16 @@ with torch.no_grad():
         probs = torch.nn.functional.softmax(outputs, dim=1)
         y_prob.append(probs.numpy().tolist())
 
-print('Accuracy of the network on the 10000 test images: %d %%'
-      % (100 * correct / total))
+print('Accuracy of the network: %d %%' % (100 * correct / total))
 
 
-# ! uncomment under
-# jeg mener labels er ground truth
-# cf_matrix = confusion_matrix(y_true, y_pred)
-# df_cm = pd.DataFrame(cf_matrix / np.sum(cf_matrix, axis=1), index=[i for i in classes],
-#                      columns=[i for i in classes])
-# plt.figure(figsize=(12, 7))
-# sns.heatmap(df_cm, annot=True)
-# # plt.savefig('output.png')
-# plt.show()
-
+cf_matrix = confusion_matrix(y_true, y_pred)
+df_cm = pd.DataFrame(cf_matrix / np.sum(cf_matrix, axis=1), index=[i for i in classes],
+                     columns=[i for i in classes])
+plt.figure(figsize=(12, 7))
+sns.heatmap(df_cm, annot=True)
+# plt.savefig('output.png')
+plt.show()
 
 
 y_prob_samples = []
@@ -287,7 +281,9 @@ y_true = np.array([int(x) for x in y_true])
 # one hot encode the test data true labels
 y_true_binary = label_binarize(y_true, classes=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 
-precision_arr, recall_arr= precision_recall(y_pred, y_true)
+precision_arr, recall_arr = precision_recall(y_pred, y_true)
+print("Precision for each class: ", precision_arr)
+print("Recall for each class: ", recall_arr)
 
 for a in range(len(y_prob)):
     for b in range(len(y_prob[0])):
@@ -316,7 +312,9 @@ for i in range(len(classes)):
     plt.plot(recall[i], precision[i], lw=2, label='class {}'.format(i))
 
     auc_precision_recall.append(auc(recall[i], precision[i]))
-print(auc_precision_recall)
+
+print("AUPRC for each class: ", auc_precision_recall)
+print("Average precision: ", average_precision)
 
 plt.xlabel("recall")
 plt.ylabel("precision")
@@ -331,6 +329,9 @@ precision["micro"], recall["micro"], _ = precision_recall_curve(
 average_precision["micro"] = average_precision_score(
     y_true_binary, y_prob_samples, average="micro")
 
+# auc_precision_recall.append(auc(recall[i], precision[i]))
+
+
 display = PrecisionRecallDisplay(
     recall=recall["micro"],
     precision=precision["micro"],
@@ -339,6 +340,22 @@ display = PrecisionRecallDisplay(
 display.plot()
 _ = display.ax_.set_title("Micro-averaged over all classes")
 plt.show()
+
+# Tar man AUCPR fra baseline eller fra x aksen?
+
+display_x = display.line_.get_xdata()
+display_y = display.line_.get_ydata()
+display_auc = auc(display_x, display_y)
+print("display_auc: ", display_auc)
+
+
+# print(display.line_.get_xdata())
+# print(display.line_.get_xydata())
+# print(display.line_.get_ydata())
+
+
+# print(display._y)
+# print(display._xy)
 
 
 print("hei")
