@@ -14,6 +14,14 @@ from sklearn.metrics import confusion_matrix, precision_recall_curve, auc, avera
 from sklearn.preprocessing import label_binarize
 # auc=Area under curve
 
+import matplotlib.pylab as pylab
+params = {'legend.fontsize': 'large',
+         'axes.labelsize': 'x-large',
+         'axes.titlesize':'x-large',
+         'xtick.labelsize':'x-large',
+         'ytick.labelsize':'x-large'}
+pylab.rcParams.update(params)
+
 # https://github.com/bkong999/COVNet/blob/master/main.py
 
 
@@ -35,8 +43,7 @@ from sklearn.preprocessing import label_binarize
 
 # TODO: Forstå alle funksjonene jeg skal bruke for forbedre modellen
 # DONE: Clean up funksjoner, få god oversikt over tallene og plotene
-# TODO: Trene modellen
-# TODO: Klare å endre på modellen
+# DONE: Klare å endre på modellen
 # TODO: Trene modellene og lagre resultatene
 
 def validate(network, valloader, criterion):
@@ -181,38 +188,54 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
 classes = ('plane', 'car', 'bird', 'cat', 'deer',
            'dog', 'frog', 'horse', 'ship', 'truck')
 
-
+# https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html
 class Net(nn.Module):  # Kan endre de her
     def __init__(self):
         super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(3, 6, 5)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(16 * 5 * 5, 200)
-        self.fc2 = nn.Linear(200, 100)
-        self.fc3 = nn.Linear(100, 50)
-        self.fc4 = nn.Linear(50, 10)
+        self.conv1 = nn.Conv2d(3, 6, 6) # prøve bigger square
+        self.pool_max2x = nn.MaxPool2d(2, 2)
+        self.pool_max3x = nn.MaxPool2d(3, 3) # Forsette med denne
+        # self.pool_mean = nn.AvgPool2d(2, 2)
+        self.conv2 = nn.Conv2d(6, 16, 4)
+        self.dropout_HL = nn.Dropout(0.3)
+        self.dropout_In = nn.Dropout(0.8)
+        self.fc1 = nn.Linear(16 * 3 * 3, 100)
+        self.fc2 = nn.Linear(100, 50)
+        self.fc3 = nn.Linear(50, 30)
+        self.fc4 = nn.Linear(30, 10)
 
     def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(-1, 16 * 5 * 5)
+        x = self.pool_max3x(F.relu(self.conv1(x))) 
+        x = self.pool_max2x(F.relu(self.conv2(x)))
+        x = x.view(-1, 16 * 3 * 3)
+        # print("view: ", x)
         x = F.relu(self.fc1(x))
+        # print("fc1: ", x)
+        x = self.dropout_HL(x)
+        # print("fc1 drop: ", x)
         x = F.relu(self.fc2(x))
+        # print("fc2: ", x)
+        x = self.dropout_HL(x)
         x = F.relu(self.fc3(x))
+        x = self.dropout_HL(x)
         x = self.fc4(x)
+        # print(x)
+        # print(self.dropout(x))
         return x
+
+    #   out = self.dropout(self.fc3(out))
 
 
 net = Net()
 net.to(device)
 
 criterion = nn.CrossEntropyLoss()  # Loss/distance funksjon
-optimizer = optim.SGD(net.parameters(), lr=0.001,
-                      momentum=0.9)  # kan endre på denne
+# optimizer = optim.SGD(net.parameters(), lr=0.001,
+#                       momentum=0.9)  # kan endre på denne
+optimizer = optim.Adam(net.parameters(), lr=0.001)
 
 print("Starting training")
-for epoch in range(5):  # loop over the dataset multiple times | Kan endre på denne?
+for epoch in range(13):  # loop over the dataset multiple times | Kan endre på denne?
     print("starting epoch " + str(epoch+1) + " ...")
     running_loss = 0.0
     for i, data in enumerate(trainloader, 0):
@@ -271,9 +294,17 @@ cf_matrix = confusion_matrix(y_true, y_pred)
 df_cm = pd.DataFrame(cf_matrix / np.sum(cf_matrix, axis=1), index=[i for i in classes],
                      columns=[i for i in classes])
 plt.figure(figsize=(12, 7))
-sns.heatmap(df_cm, annot=True)
+sns.heatmap(df_cm, annot=True, annot_kws={"size": 12})
+# plt.rcParams.update({'font.size': 18})
 # plt.savefig('output.png')
 plt.show()
+
+params = {'legend.fontsize': 'large',
+         'axes.labelsize': 'large',
+         'axes.titlesize':'large',
+         'xtick.labelsize':'large',
+         'ytick.labelsize':'large'}
+pylab.rcParams.update(params)
 
 
 y_prob_samples = []
@@ -320,10 +351,14 @@ for i in range(len(classes)):
 print("AUPRC for each class: ", auc_precision_recall)
 print("Average precision: ", average_precision)
 
-plt.xlabel("recall")
-plt.ylabel("precision")
-plt.legend(loc="best")
-plt.title("precision vs. recall curve")
+plt.xlabel("Recall", fontsize=18)
+# plt.rcParams.update({'font.size': 18})
+# plt.rcParams.update({'axes.titlesize': 'large'})
+# plt.rcParams.update({'axes.labelsize': 'large'})
+plt.grid()
+plt.ylabel("Precision", fontsize=18)
+plt.legend(loc="best",  fontsize=16)
+plt.title("precision vs. recall curve", fontsize=22)
 plt.show()
 
 # A "micro-average": quantifying score on all classes jointly
@@ -342,7 +377,14 @@ display = PrecisionRecallDisplay(
     average_precision=average_precision["micro"],
 )
 display.plot()
-_ = display.ax_.set_title("Micro-averaged over all classes")
+_ = display.ax_.set_title("Micro-averaged over all classes",fontsize=22)
+display.ax_.set_xlabel('Recall', fontsize=18)
+display.ax_ .set_ylabel('Precision', fontsize=18)
+# plt.rcParams.update({'font.size': 18})
+# plt.rcParams.update({'axes.titlesize': 'large'})
+# plt.rcParams.update({'axes.labelsize': 'large'})
+# mpl.rcParams['axes.titlesize'] = 2
+plt.grid()
 plt.show()
 
 # Tar man AUCPR fra baseline eller fra x aksen?
